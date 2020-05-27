@@ -1,5 +1,10 @@
 const ohm = require('ohm-js');
-const { contents: grammar } = require('../grammar/usfm-relaxed.ohm.js');
+const fs = require('fs');
+const path = require('path');
+
+const grammar = fs.readFileSync(
+  path.resolve(__dirname, '../grammar/usfm-relaxed.ohm'),
+);
 
 const { usfmRelaxed: bib } = ohm.grammars(grammar);
 const sem = bib.createSemantics();
@@ -12,7 +17,7 @@ const verseCarryingMarkers = ['li', 'li1', 'li2', 'li3', 'litl',
   'tcr1', 'tcr2', 'tcr3', 'add', 'bk', 'dc', 'k', 'lit', 'nd', 'ord',
   'pn', 'png', 'addpn', 'qt', 'sig', 'sls', 'tl', 'wj', 'em', 'bd',
   'it', 'bdit', 'no', 'sc', 'sup', 'w', 'rb', 'wa', 'wg', 'wh', 'pro'];
-const paraMarkers = ['p', 'm','po', 'pr', 'cls', 'pmo', 'pm', 'pmc',
+const paraMarkers = ['p', 'm', 'po', 'pr', 'cls', 'pmo', 'pm', 'pmc',
   'pmr', 'pi', 'pi1', 'pi2', 'pi3', 'mi', 'nb', 'pc', 'ph', 'ph1', 'ph2',
   'ph3', 'b', 'q', 'q1', 'q2', 'q3', 'qr', 'qc', 'qs', 'qa', 'qac', 'qm',
   'qm1', 'qm2', 'qm3'];
@@ -50,15 +55,15 @@ sem.addOperation('buildJson', {
       contents: contents.buildJson(),
     };
     for (let i = 0; i < res.contents.length; i += 1) {
-      const key = Object.keys(res.contents[i])[0]
+      const key = Object.keys(res.contents[i])[0];
       if (paraMarkers.includes(key)) {
-          const text = res.contents[i][key];
-          res.contents[i][key] = null;
-          if (text !== '') {
-            res.contents.splice(i+1, 0, text)
-            i += 1;
-          }
+        const text = res.contents[i][key];
+        res.contents[i][key] = null;
+        if (text !== '') {
+          res.contents.splice(i + 1, 0, text);
+          i += 1;
         }
+      }
     }
     return res;
   },
@@ -84,7 +89,7 @@ sem.addOperation('buildJson', {
   },
 
   VerseMarker(_1, _2, _3, num, contents) {
-    let res = {
+    const res = {
       verseNumber: num.sourceString,
       contents: contents.buildJson(),
     };
@@ -99,10 +104,10 @@ sem.addOperation('buildJson', {
           res.verseText += ` ${res.contents[i][key]}`;
         } else if (paraMarkers.includes(key)) {
           const text = res.contents[i][key];
-          res.verseText +=  ` ${text}`;
+          res.verseText += ` ${text}`;
           res.contents[i][key] = null;
           if (text !== '') {
-            res.contents.splice(i+1, 0, text)
+            res.contents.splice(i + 1, 0, text);
             i += 1;
           }
         }
@@ -130,11 +135,21 @@ sem.addOperation('buildJson', {
   NormalMarker(_1, mrkr, contents) {
     const res = {};
     let contentslist = contents.buildJson();
+
     if (contentslist.length === 1 && typeof contentslist[0] === 'string') {
       [contentslist] = contentslist;
     } else if (contentslist.length === 0) {
       contentslist = '';
+    } else if (contentslist.length > 0) {
+      contentslist.forEach((el) => {
+        if (typeof el === 'string') {
+          contentslist.push(el);
+        } else {
+          contentslist.push(el);
+        }
+      });
     }
+
     res[mrkr.sourceString] = contentslist;
     return res;
   },

@@ -50,7 +50,6 @@ class USFMparser extends Parser {
   static parseUSFM(str, resultType = 'normal', mode = 'normal') {
     let matchObj = null;
     if (mode === 'relaxed') {
-      // console.log('coming into relaxed parsing');
       matchObj = relaxParse(str);
       return matchObj;
     }
